@@ -30,6 +30,13 @@
        Cyclefnc()
      }, clicktime)
    })
+
+   $('.swiper').on('swipe', function (param) {
+     console.log('ssd');
+     })
+     $('body').on('swiper', function (param) {
+       console.log('ssd');
+     })
  });
 
  function Cyclefnc() {
@@ -48,13 +55,13 @@
  }
 
  function sliper() {
-   let slider =  (-sliderwidth * (currentIndex))
+   let slider = (-sliderwidth * (currentIndex))
    $('.swiperchild').css({
      'transform': `translateX(${slider}px)`,
      'transition': currentIndex == 0 ? '0s' : pagedelay
    })
    $($('.slideritem')[currentIndex]).addClass('active')
-   $('.slideritem').filter(index =>index != currentIndex).removeClass('active')
+   $('.slideritem').filter(index => index != currentIndex).removeClass('active')
    currentIndex += 1;
    if (currentIndex == length) {
      currentIndex = 0;
