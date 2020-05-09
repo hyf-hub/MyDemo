@@ -6,7 +6,7 @@
  let length = 0; // 有多少个需轮播的图片
  let clickIndex = 0; // 当前点击的元素索引
  let clicktime = 1000 // 点击之后的停顿时间
- let flag = false
+ let flag = false //是否不是第一次轮播 
  $(function () {
    sliderwidth = $('.slider').width()
    //  Cycle = false
@@ -17,18 +17,9 @@
    Cyclefnc(Cycle)
    //  创建指示点到图片上
    // 减一是减去最后一张图片
-   for (let i = 0; i < length - 1; i++) {
-     //  $('.indicator').appendTo('<div></div>')
+   for (let i = 0; i < length - 1; i++)
      $('<div class="slideritem"></div>').appendTo('.indicator');
-   }
-
    $($('.slideritem')[0]).addClass('active')
-
-
-   //  $('slideritem').map((item,index=>{
-   //    $(item).click(e=>{
-   //       console.log();
-   //    })
    //指示点被点击
    $('.indicator>div').click(function () {
      let index = $(this).index()
@@ -42,42 +33,31 @@
  });
 
  function Cyclefnc() {
-   //  while (Cycle) {
    let timer = 0
-
+   //判断是否是被点击了 如果是则清除上次的计时器
    if (Cycle) {
-     let temp =  delay
-     if ((currentIndex == 1) && flag){
-       temp = 0;
-     }
+     let temp = (currentIndex == 1) && flag ? 0 : delay
      timer = setTimeout(function () {
        sliper()
        clearInterval(timer)
        Cyclefnc()
        flag = true
-       //  Cycle?Cyclefnc():0
      }, temp)
-     //  }
    } else
      clearInterval(timer || 0)
  }
 
- function sliper(replacewidth = 0) {
-   let slider = replacewidth ? replacewidth : (-sliderwidth * (currentIndex))
+ function sliper() {
+   let slider =  (-sliderwidth * (currentIndex))
    $('.swiperchild').css({
      'transform': `translateX(${slider}px)`,
-     //  'transition': 'transfrom 300ms ease 0s'
      'transition': currentIndex == 0 ? '0s' : pagedelay
    })
    $($('.slideritem')[currentIndex]).addClass('active')
-   $('.slideritem').filter((index, item) => {
-     // return  !$(item).hasClass('active')
-     return index != currentIndex
-   }).removeClass('active')
-   //  console.log(arr);
+   $('.slideritem').filter(index =>index != currentIndex).removeClass('active')
    currentIndex += 1;
    if (currentIndex == length) {
-      currentIndex = 0;
+     currentIndex = 0;
      $($('.slideritem')[currentIndex]).addClass('active')
    }
  }
