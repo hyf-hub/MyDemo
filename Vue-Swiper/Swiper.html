@@ -36,7 +36,7 @@
         ],
         sliderwidth: 0, //当前需轮播的宽度
         delay: 1000, // 每次轮播之间延迟的时间
-        currentIndex: 1, // 当前所在的位置
+        currentIndex: 0, // 当前所在的位置
         Cycle: true, // 是否开启轮播
         pagedelay: '300ms', // 轮播切换的动画延迟时间
         length: 0, // 有多少个需轮播的图片
@@ -78,11 +78,21 @@
         this.currentIndex = index;
         this.changdelay()
       },
-      sliper() {
+     async  sliper() {
+        if (!this.Cycle)
+          return
         let slider = (-this.sliderwidth * (this.currentIndex))
-        this.animate(slider,this.currentIndex == 0 ? '0s' : this.pagedelay)
+        let pagedelay = this.currentIndex == 0 ? '0s' : this.pagedelay
+        this.animate(slider, pagedelay)
         // $($('.slideritem')[this.currentIndex]).addClass('active')
         // $('.slideritem').filter(index => index != this.currentIndex).removeClass('active')
+        await (function (pagedelay) {
+          return new Promise((r, j) => {
+            setTimeout(_ => {
+              r();
+            }, pagedelay)
+          })
+        })(pagedelay)
         this.currentIndex += 1;
         if (this.currentIndex == this.length + 1) {
           this.currentIndex = 0;
@@ -94,48 +104,51 @@
         this.Cycle = false
         this.touchstartX = e.changedTouches[0].clientX;
         console.log('start', this.currentIndex);
-        this.currentIndex -= 1
+        // this.currentIndex -= 1
         console.log('start', this.currentIndex);
 
       },
       touchend(e) {
         // 负值为向左滑动
         let touchendX = this.touchstartX - e.changedTouches[0].clientX
-        if (touchendX < 20) {
+        //判断是否是误触
+        if (Math.abs(touchendX) < 20) {
           this.changdelay()
           return
-
         }
+
         let width = parseInt(this.sliderwidth / 2)
         let moveabs = Math.abs(touchendX);
         // console.log(this.touchendX);
         //判断移动距离是否够切换到下一张的
         let swiperchild = this.$refs.swiperchild
-        let movewidth = parseInt(moveabs > width ? this.sliderwidth - moveabs : moveabs);
-        let slider = 0;
-        if (movewidth != moveabs) {
-          this.currentIndex = touchendX > 0 ? +1 : -1
-          slider = (touchendX > 0 ? -movewidth : movewidth) + swiperchild.style.transform.split('(')[1].split('px')[
-            0] * 1
-          let temp = slider
-          for (let i = 1; i < this.imglist.length; i++) {
-            if (-slider * i > (this.sliderwidth * i))
-              temp = -this.sliderwidth * i - 1
-          }
-          slider = temp
-          console.log(slider);
+        // let movewidth = parseInt(moveabs > width ? this.sliderwidth - moveabs : moveabs);.
+        if (moveabs > width) {
+          touchendX > 0 ? this.currentIndex += 1 : this.currentIndex -= 1;
         }
+        let slider = -(this.currentIndex * this.sliderwidth)
+
+        // let slider = 0;
+        // if (movewidth != moveabs) {
+        //   this.currentIndex = touchendX > 0 ? +1 : -1
+        //   slider = (touchendX > 0 ? -movewidth : movewidth) + swiperchild.style.transform.split('(')[1].split('px')[
+        //     0] * 1
+        //   let temp = slider
+        //   for (let i = 1; i < this.imglist.length; i++) {
+        //     if (-slider * i > (this.sliderwidth * i))
+        //       temp = -this.sliderwidth * i - 1
+        //   }
+        //   slider = temp
+        // }
         // let slider = (-this.sliderwidth * (this.currentIndex))
-       this.animate(slider)
-        setTimeout(_ => {
-          this.Cycle = true
-          this.Cyclefnc()
-        }, this.clicktime)
+        this.animate(slider)
+        this.Cycle = false
+        //  this.changdelay();
       },
       touchmove(e) {
         let X = parseInt(e.changedTouches[0].clientX - this.touchstartX);
-        let slider = (-this.sliderwidth * (this.currentIndex)) + X
-        this.animate(slider)
+        let slider = (-this.sliderwidth * (this.currentIndex -1)) + X
+        this.animate(slider, '0ms')
       },
       changdelay() {
         this.Cycle = false
@@ -144,7 +157,7 @@
           this.Cyclefnc()
         }, this.clicktime)
       },
-      animate(slider,pagedelay=this.pagedelay) {
+      animate(slider, pagedelay = this.pagedelay) {
         let swiperchild = this.$refs.swiperchild
         swiperchild.style.transition = pagedelay
         swiperchild.style.transform = `translateX(${slider}px)`;
@@ -155,9 +168,15 @@
       this.sliderwidth = this.$refs.img[0].width
       this.length = this.imglist.length
       // let temp = 
-      this.imglist.push(this.imglist[0])
+
       this.Cyclefnc(this.Cycle)
+      let swiperchild = this.$refs.swiperchild
+      swiperchild.style.transform = `translateX(-${this.sliderwidth}px)`;
       // $($('.slideritem')[0]).addClass('active')
+    },
+    created() {
+      this.imglist.unshift(this.imglist[this.imglist.length - 1])
+      this.imglist.push(this.imglist[1])
     }
   })
 </script>
