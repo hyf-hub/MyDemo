@@ -19,7 +19,8 @@
     </div>
     <div class="indicator">
 
-      <div class="slideritem" :class="isShow" v-for="(item,index) in imglist.length -1 " @click="">
+      <div class="slideritem" :class="isShow(index)" v-for="(item,index) in imglist.length -1 "
+       @click="itemclick(index)">
 
       </div>
 
@@ -48,9 +49,11 @@
       }
     },
     computed: {
-      isShow(index) {
+      isShow() {
         return function (index) {
-          return (index == currentIndex - 1) || index == this.imglist.length
+          console.log(index);
+          // return (index == this.currentIndex - 1) || index == this.imglist.length
+          return (index == this.currentIndex-1) || (this.currentIndex==0 &&this.flag && index==0) ?'active':''
         }
       }
     },
