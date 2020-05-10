@@ -11,19 +11,16 @@
 <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
 
 <body>
-  <div class="swiper">
+  <div class="swiper" @touchstart="touchstart" @touchend="touchend" @touchmove="touchmove">
     <div class="swiperchild" ref="swiperchild">
       <div class="slider" v-for="(item,index) in imglist" :key="index">
         <img ref="img" :src="item" alt="" />
       </div>
     </div>
     <div class="indicator">
-
       <div class="slideritem" :class="isShow(index)" v-for="(item,index) in imglist.length -1 "
-       @click="itemclick(index)">
-
+        @click="itemclick(index)">
       </div>
-
     </div>
   </div>
 </body>
@@ -45,15 +42,17 @@
         length: 0, // 有多少个需轮播的图片
         clickIndex: 0, // 当前点击的元素索引
         clicktime: 1000, // 点击之后的停顿时间
-        flag: false //是否不是第一次轮播
+        flag: false, //是否不是第一次轮播,
+        touchstartX: 0,
+        touchendX: 0
       }
     },
     computed: {
       isShow() {
         return function (index) {
-          console.log(index);
           // return (index == this.currentIndex - 1) || index == this.imglist.length
-          return (index == this.currentIndex-1) || (this.currentIndex==0 &&this.flag && index==0) ?'active':''
+          return (index == this.currentIndex - 1) || (this.currentIndex == 0 && this.flag && index == 0) ?
+            'active' : ''
         }
       }
     },
@@ -66,28 +65,22 @@
           let temp = (this.currentIndex == 1) && this.flag ? 0 : this.delay
           // let temp = this.delay
           timer = setTimeout(_ => {
-            this.sliper()
+            if (this.Cycle)
+              this.sliper()
             clearInterval(timer)
             this.Cyclefnc()
             this.flag = true
           }, temp)
         } else
-          clearInterval(timer || 0)
+          clearInterval(timer)
       },
       itemclick(index) {
         this.currentIndex = index;
-        this.Cycle = false
-        setTimeout(_ => {
-          this.Cycle = true
-          this.Cyclefnc()
-        }, this.clicktime)
+        this.changdelay()
       },
       sliper() {
         let slider = (-this.sliderwidth * (this.currentIndex))
-        let swiperchild = this.$refs.swiperchild
-        swiperchild.style.transition = this.currentIndex == 0 ? '0s' : this.pagedelay
-        swiperchild.style.transform = `translateX(${slider}px)`;
-        // 
+        this.animate(slider,this.currentIndex == 0 ? '0s' : this.pagedelay)
         // $($('.slideritem')[this.currentIndex]).addClass('active')
         // $('.slideritem').filter(index => index != this.currentIndex).removeClass('active')
         this.currentIndex += 1;
@@ -96,6 +89,65 @@
           //  $('.slideritem').filter(index => index != this.currentIndex).removeClass('active')
           // $($('.slideritem')[this.currentIndex]).addClass('active')
         }
+      },
+      touchstart(e) {
+        this.Cycle = false
+        this.touchstartX = e.changedTouches[0].clientX;
+        console.log('start', this.currentIndex);
+        this.currentIndex -= 1
+        console.log('start', this.currentIndex);
+
+      },
+      touchend(e) {
+        // 负值为向左滑动
+        let touchendX = this.touchstartX - e.changedTouches[0].clientX
+        if (touchendX < 20) {
+          this.changdelay()
+          return
+
+        }
+        let width = parseInt(this.sliderwidth / 2)
+        let moveabs = Math.abs(touchendX);
+        // console.log(this.touchendX);
+        //判断移动距离是否够切换到下一张的
+        let swiperchild = this.$refs.swiperchild
+        let movewidth = parseInt(moveabs > width ? this.sliderwidth - moveabs : moveabs);
+        let slider = 0;
+        if (movewidth != moveabs) {
+          this.currentIndex = touchendX > 0 ? +1 : -1
+          slider = (touchendX > 0 ? -movewidth : movewidth) + swiperchild.style.transform.split('(')[1].split('px')[
+            0] * 1
+          let temp = slider
+          for (let i = 1; i < this.imglist.length; i++) {
+            if (-slider * i > (this.sliderwidth * i))
+              temp = -this.sliderwidth * i - 1
+          }
+          slider = temp
+          console.log(slider);
+        }
+        // let slider = (-this.sliderwidth * (this.currentIndex))
+       this.animate(slider)
+        setTimeout(_ => {
+          this.Cycle = true
+          this.Cyclefnc()
+        }, this.clicktime)
+      },
+      touchmove(e) {
+        let X = parseInt(e.changedTouches[0].clientX - this.touchstartX);
+        let slider = (-this.sliderwidth * (this.currentIndex)) + X
+        this.animate(slider)
+      },
+      changdelay() {
+        this.Cycle = false
+        setTimeout(_ => {
+          this.Cycle = true
+          this.Cyclefnc()
+        }, this.clicktime)
+      },
+      animate(slider,pagedelay=this.pagedelay) {
+        let swiperchild = this.$refs.swiperchild
+        swiperchild.style.transition = pagedelay
+        swiperchild.style.transform = `translateX(${slider}px)`;
       }
     },
     mounted() {
