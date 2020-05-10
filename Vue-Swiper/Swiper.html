@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <link rel="stylesheet" href="./Css/Swiper.css">
+</head>
+<script src="http://code.jquery.com/jquery-latest.js"> </script>
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+<body>
+  <div class="swiper">
+    <div class="swiperchild" ref="swiperchild">
+      <div class="slider" v-for="(item,index) in imglist" :key="index">
+        <img ref="img" :src="item" alt="" />
+      </div>
+    </div>
+    <div class="indicator">
+
+      <div class="slideritem" :class="isShow" v-for="(item,index) in imglist.length -1 " @click="">
+
+      </div>
+
+    </div>
+  </div>
+</body>
+<script>
+  new Vue({
+    el: '.swiper',
+    data() {
+      return {
+        imglist: ['https://s10.mogucdn.com/mlcdn/c45406/180926_45fkj8ifdj4l824l42dgf9hd0h495_750x390.jpg',
+          'https://s10.mogucdn.com/mlcdn/c45406/180926_31eb9h75jc217k7iej24i2dd0jba3_750x390.jpg',
+          'https://s10.mogucdn.com/mlcdn/c45406/180919_3f62ijgkj656k2lj03dh0di4iflea_750x390.jpg',
+          'https://s10.mogucdn.com/mlcdn/c45406/180917_18l981g6clk33fbl3833ja357aaa0_750x390.jpg'
+        ],
+        sliderwidth: 0, //当前需轮播的宽度
+        delay: 1000, // 每次轮播之间延迟的时间
+        currentIndex: 1, // 当前所在的位置
+        Cycle: true, // 是否开启轮播
+        pagedelay: '300ms', // 轮播切换的动画延迟时间
+        length: 0, // 有多少个需轮播的图片
+        clickIndex: 0, // 当前点击的元素索引
+        clicktime: 1000, // 点击之后的停顿时间
+        flag: false //是否不是第一次轮播
+      }
+    },
+    computed: {
+      isShow(index) {
+        return function (index) {
+          return (index == currentIndex - 1) || index == this.imglist.length
+        }
+      }
+    },
+    methods: {
+      // sli
+      Cyclefnc() {
+        let timer = 0
+        //判断是否是被点击了 如果是则清除上次的计时器
+        if (this.Cycle) {
+          let temp = (this.currentIndex == 1) && this.flag ? 0 : this.delay
+          // let temp = this.delay
+          timer = setTimeout(_ => {
+            this.sliper()
+            clearInterval(timer)
+            this.Cyclefnc()
+            this.flag = true
+          }, temp)
+        } else
+          clearInterval(timer || 0)
+      },
+      itemclick(index) {
+        this.currentIndex = index;
+        this.Cycle = false
+        setTimeout(_ => {
+          this.Cycle = true
+          this.Cyclefnc()
+        }, this.clicktime)
+      },
+      sliper() {
+        let slider = (-this.sliderwidth * (this.currentIndex))
+        let swiperchild = this.$refs.swiperchild
+        swiperchild.style.transition = this.currentIndex == 0 ? '0s' : this.pagedelay
+        swiperchild.style.transform = `translateX(${slider}px)`;
+        // 
+        // $($('.slideritem')[this.currentIndex]).addClass('active')
+        // $('.slideritem').filter(index => index != this.currentIndex).removeClass('active')
+        this.currentIndex += 1;
+        if (this.currentIndex == this.length + 1) {
+          this.currentIndex = 0;
+          //  $('.slideritem').filter(index => index != this.currentIndex).removeClass('active')
+          // $($('.slideritem')[this.currentIndex]).addClass('active')
+        }
+      }
+    },
+    mounted() {
+      // console.log(this.data);
+      this.sliderwidth = this.$refs.img[0].width
+      this.length = this.imglist.length
+      // let temp = 
+      this.imglist.push(this.imglist[0])
+      this.Cyclefnc(this.Cycle)
+      // $($('.slideritem')[0]).addClass('active')
+    }
+  })
+</script>
+
+</html>
